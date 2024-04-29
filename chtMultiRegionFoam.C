@@ -48,9 +48,6 @@ Description
 #include "pressureReference.H"
 #include "hydrostaticInitialisation.H"
 
-// Modifications
-#include "basicChemistryModel.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])

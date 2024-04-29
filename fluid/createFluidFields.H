@@ -27,14 +27,8 @@ PtrList<fvConstraints> fvConstraintsFluid(fluidRegions.size());
 
 // *************************************************************************
 // Additions for porous catalyst simulations
-// chemistryModel required
-PtrList<basicChemistryModel> chemistryFluid(fluidRegions.size());
-// Heat release rate
-PtrList<volScalarField> QdotFluid(fluidRegions.size());
 // Porosity field
 PtrList<volScalarField> epsporeFluid(fluidRegions.size());
-// Auxiliary field for species i RR
-PtrList<volScalarField> omegarr_i_Fluid(fluidRegions.size());
 // Isothermal flow boolean list
 List<bool> isothermalFluidRegions(fluidRegions.size());
 // *************************************************************************
@@ -304,34 +298,6 @@ forAll(fluidRegions, i)
     // Additions for porous catalyst simulations
     // *********************************************************************
 
-    // chemistryModel required
-    Info<< "    Adding to chemistryFluid\n" << endl;
-    chemistryFluid.set(i, basicChemistryModel::New(thermoFluid[i]));
-
-    // Heat release rate
-    Info<< "    Adding to QdotFluid\n" << endl;
-    QdotFluid.set
-    (
-        i,
-        new volScalarField
-        (
-            IOobject
-            (
-                "Qdot",
-                runTime.timeName(),
-                fluidRegions[i],
-                IOobject::READ_IF_PRESENT,
-                IOobject::AUTO_WRITE
-            ),
-            fluidRegions[i],
-            dimensionedScalar
-            (
-                dimensionSet(1,-1,-3,0,0,0, 0),
-                0
-            )
-        )
-    );
-
     // porosity field
     Info<< "    Adding to epsporeFluid\n" << endl;
     epsporeFluid.set
@@ -351,26 +317,6 @@ forAll(fluidRegions, i)
         )
     );
 
-    // Field for species i reaction rate [kg/m3/s]
-    Info<< "    Adding to omegarr_i_Fluid\n" << endl;
-    omegarr_i_Fluid.set
-    (
-        i,
-        new volScalarField
-        (
-            IOobject
-            (
-                "omegarr_i",
-                runTime.timeName(),
-                fluidRegions[i],
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            fluidRegions[i],
-            dimensionedScalar("omegarr_i",dimensionSet(1,-3,-1,0,0,0, 0),0)
-        )
-    );
-
     // Check the existence of the cellZone "catalyst"
     const word cellSetCatalyst = "catalyst";
     label zoneID = fluidRegions[i].cellZones().findZoneID(cellSetCatalyst);
@@ -382,6 +328,17 @@ forAll(fluidRegions, i)
             << exit(FatalError);
     }
 
+    // Set porosity to 1 in fluid region within catalyst and 0 in fluid region 
+    // outside catalyst cell zone
+    // To that extent, reset porosity field to 0
+    epsporeFluid[i] *= 0.0;
+    // Now loop through cells in catalyst region to change porosity value to 1
+    const labelList& cellsCatalyst = fluidRegions[i].cellZones()[zoneID];
+    forAll( cellsCatalyst, cc ){
+        label celli    = cellsCatalyst[cc];
+        epsporeFluid[i][celli] = 1.0;
+    }
+    
     // Check for option to run isothermal simulation (deactivates energy eqn)
     isothermalFluidRegions[i] = readBool(thermoFluid[i].properties().lookup("isothermalFlow"));
 

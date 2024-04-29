@@ -60,16 +60,5 @@
     // Additions for porous catalyst simulations
     // *********************************************************************
 
-    // chemistry model required
-    basicChemistryModel& chemistry = chemistryFluid[i];
-
-    // Define cell set list with catalyst zone
-    const word cellSetCatalyst = "catalyst";
-    label zoneID = fluidRegions[i].cellZones().findZoneID(cellSetCatalyst);
-    const labelList& cellsCatalyst = fluidRegions[i].cellZones()[zoneID];
-
-    // species reaction rate auxiliary field
-    volScalarField& omegarr_i = omegarr_i_Fluid[i]; 
-
-    // heat release rate field
-    volScalarField& Qdot = QdotFluid[i];
+    // Porosity field
+    volScalarField& epspore = epsporeFluid[i];

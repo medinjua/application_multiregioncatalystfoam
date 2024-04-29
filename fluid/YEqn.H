@@ -14,14 +14,7 @@ if (Y.size())
     );
 }
 
-// Following is commented out for explicit calculation of RR in catalysts
-//reaction.correct();
-//**************************************************************************
-// Modification catalyst simulations
-// Instead, calculate regular reaction rate with the chemistry pointer
-chemistry.calculate();
-// End modification
-//**************************************************************************
+reaction.correct();
 
 forAll(Y, i)
 {
@@ -29,29 +22,13 @@ forAll(Y, i)
     {
         volScalarField& Yi = Y[i];
 
-        //******************************************************************
-        // regular reaction matrix
-        // reaction rate obtained by chemistry.RR(i), 
-        // previously set by chemistry.calculate()
-        // NOTE: Reaction rates for species are in units kg/m3/s
-        volScalarField::Internal RRi(chemistry.RR(i));
-
-        // First, reinitialize omegarr_i to zero
-        omegarr_i *= 0.0;
-        forAll(cellsCatalyst, cc)
-        {
-            label celli       = cellsCatalyst[cc];
-            omegarr_i[celli]  = RRi[celli];
-        }
-        //******************************************************************
-
         fvScalarMatrix YiEqn
         (
             fvm::ddt(rho, Yi) + mvConvection->fvmDiv(phi, Yi)
           + thermophysicalTransport.divj(Yi)
          ==
-            //reaction.R(Yi)           // commented out for replacement ****
-            omegarr_i                  // replaced RR matrix ***************
+            // Following calculates reaction rate only on "catalyst" section
+            epspore*reaction.R(Yi)        // Added multiplication by epspore
           + fvModels.source(rho, Yi)
         );
 
