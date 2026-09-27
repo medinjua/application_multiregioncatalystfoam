@@ -62,3 +62,6 @@
 
     // Porosity field
     volScalarField& epspore = epsporeFluid[i];
+    
+    // Initial temperature field
+    volScalarField& Tfixed = TfixedFluid[i];

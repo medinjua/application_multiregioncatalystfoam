@@ -16,6 +16,31 @@ if (Y.size())
 
 reaction.correct();
 
+// Construct correction to the diffusion velocity
+surfaceScalarField JF
+(
+    IOobject
+    (
+        "JF",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    dimensionedScalar
+    (
+        "zero",
+        dimMass/dimArea/dimTime,
+        0
+    )
+);
+
+forAll(Y, i)
+{
+    JF += thermophysicalTransport.j(Y[i]);
+}
+
 forAll(Y, i)
 {
     if (composition.solve(i))
@@ -26,6 +51,7 @@ forAll(Y, i)
         (
             fvm::ddt(rho, Yi) + mvConvection->fvmDiv(phi, Yi)
           + thermophysicalTransport.divj(Yi)
+          - fvc::div(fvc::interpolate(Yi)*JF*mesh.magSf())  // Correction to the diffusion velocity
          ==
             // Following calculates reaction rate only on "catalyst" section
             epspore*reaction.R(Yi)        // Added multiplication by epspore

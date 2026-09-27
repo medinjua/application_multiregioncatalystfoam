@@ -29,6 +29,8 @@ PtrList<fvConstraints> fvConstraintsFluid(fluidRegions.size());
 // Additions for porous catalyst simulations
 // Porosity field
 PtrList<volScalarField> epsporeFluid(fluidRegions.size());
+// Initial temperature field
+PtrList<volScalarField> TfixedFluid(fluidRegions.size());
 // Isothermal flow boolean list
 List<bool> isothermalFluidRegions(fluidRegions.size());
 // *************************************************************************
@@ -314,6 +316,25 @@ forAll(fluidRegions, i)
                 IOobject::AUTO_WRITE
             ),
             fluidRegions[i]
+        )
+    );
+
+    // Initial temperature field
+    Info<< "    Adding to TfixedFluid\n" << endl;
+    TfixedFluid.set
+    (
+        i,
+        new volScalarField
+        (
+            IOobject
+            (
+                "Tfixed",
+                runTime.timeName(),
+                fluidRegions[i],
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            thermoFluid[i].T()
         )
     );
 
